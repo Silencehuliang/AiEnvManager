@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import type { HostsResponse } from "@aienv/shared";
-import { api } from "./api.js";
+import { api, type ProvidersResponse } from "./api.js";
 import ProvidersPage from "./pages/ProvidersPage.js";
+
+const HOST_NAMES: Record<string, string> = {
+  zcode: "ZCode",
+  codex: "Codex",
+  opencode: "OpenCode",
+  dsh: "dsh",
+};
 
 const PAGES = [
   { id: "overview", label: "总览" },
@@ -16,10 +23,14 @@ type PageId = (typeof PAGES)[number]["id"];
 export default function App() {
   const [page, setPage] = useState<PageId>("overview");
   const [data, setData] = useState<HostsResponse | null>(null);
+  const [providers, setProviders] = useState<ProvidersResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (page === "overview") api.hosts().then(setData).catch((e) => setError(String(e)));
+    if (page === "overview") {
+      api.hosts().then(setData).catch((e) => setError(String(e)));
+      api.providers().then(setProviders).catch(() => setProviders(null));
+    }
   }, [page]);
 
   return (
@@ -54,6 +65,7 @@ export default function App() {
                   <tr style={{ textAlign: "left", borderBottom: "2px solid #333" }}>
                     <th>宿主</th>
                     <th>状态</th>
+                    <th>当前供应商</th>
                     <th>配置根</th>
                   </tr>
                 </thead>
@@ -62,6 +74,7 @@ export default function App() {
                     <tr key={h.id} style={{ borderBottom: "1px solid #ddd" }}>
                       <td>{h.name}</td>
                       <td>{h.detected ? "✅ 已安装" : "⚪ 未检测到"}</td>
+                      <td>{providers?.active[h.id]?.model ?? "—"}</td>
                       <td style={{ fontFamily: "monospace", fontSize: 12 }}>{h.root}</td>
                     </tr>
                   ))}

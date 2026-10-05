@@ -7,7 +7,9 @@ import { slugify } from "../registry.js";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import fsp from "node:fs/promises";
+import os from "node:os";
 import type { ProviderAdapter } from "../adapters/types.js";
+import { importFromCcSwitch } from "../importer/ccswitch.js";
 import type { ProviderProfile } from "../registry.js";
 
 interface ProviderInput {
@@ -101,6 +103,24 @@ export function registerProviderRoutes(
       applied.push({ file, changed: result.changed, backup: result.backup });
     }
     return c.json({ ok: true, hostId: c.req.param("hostId"), slug: slugify(profile.name), applied });
+  });
+  app.post("/api/providers/import-ccswitch", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { dbPath?: string };
+    const dbPath = body.dbPath ?? path.join(os.homedir(), ".cc-switch", "cc-switch.db");
+    try {
+      const report = await importFromCcSwitch(dbPath);
+      const seed = report.items.map(({ name, baseUrl, apiKey }) => ({ name, baseUrl, apiKey, models: [] }));
+      const imported = await ctx.store.seed(seed);
+      return c.json({
+        total: report.total,
+        matched: report.imported,
+        skipped: report.skipped,
+        imported,
+        skippedNotes: report.skippedNotes,
+      });
+    } catch (e) {
+      return c.json({ error: (e as Error).message }, 400);
+    }
   });
 }
 
