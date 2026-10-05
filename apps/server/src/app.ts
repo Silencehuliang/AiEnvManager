@@ -14,7 +14,6 @@ import { registerSkillRoutes } from "./api/skills.js";
 import { registerMcpRoutes } from "./api/mcp.js";
 import { registerPluginRoutes } from "./api/plugins.js";
 import { registerDshPluginRoutes } from "./api/dshPlugins.js";
-import { registerDshLifecycleRoutes } from "./api/dshLifecycle.js";
 import { createOpencodeAdapter } from "./adapters/opencode.js";
 import { createCodexAdapter } from "./adapters/codex.js";
 import { createDshAdapter } from "./adapters/dsh.js";
