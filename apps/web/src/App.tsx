@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { HostsResponse } from "@aienv/shared";
 import { api, type ProvidersResponse } from "./api.js";
 import ProvidersPage from "./pages/ProvidersPage.js";
+import SkillsPage from "./pages/SkillsPage.js";
 
 const HOST_NAMES: Record<string, string> = {
   zcode: "ZCode",
@@ -84,7 +85,8 @@ export default function App() {
           </div>
         )}
         {page === "providers" && <ProvidersPage />}
-        {(page === "skills" || page === "mcp" || page === "plugins") && (
+        {page === "skills" && <SkillsPage />}
+        {(page === "mcp" || page === "plugins") && (
           <p style={{ color: "#888" }}>该资源域将在后续工单交付。</p>
         )}
       </main>
