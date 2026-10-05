@@ -3,11 +3,15 @@ import crypto from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import fsp from "node:fs/promises";
 import { Hono } from "hono";
-import type { HostInfo, HostsResponse } from "@aienv/shared";
+import type { HostId, HostInfo, HostsResponse } from "@aienv/shared";
 import { HOST_DEFS, resolvePaths, type AppPaths } from "./paths.js";
 import { loadSettings, type Settings } from "./settings.js";
 import { WriteEngine, ConflictError } from "./engine/writer.js";
 import { detectFormat } from "./engine/ops.js";
+import { ProviderStore } from "./providerStore.js";
+import { createOpencodeAdapter } from "./adapters/opencode.js";
+import type { ProviderAdapter } from "./adapters/types.js";
+import { registerProviderRoutes } from "./api/providers.js";
 
 function sha1(content: string): string {
   return crypto.createHash("sha1").update(content).digest("hex");
@@ -27,6 +31,9 @@ export interface AppContext {
   settings: Settings;
   dataDir: string;
   homeDir: string;
+  store: ProviderStore;
+  adapters: Map<HostId, ProviderAdapter>;
+  hashOf: (content: string) => string;
 }
 
 export function guardInsideHome(homeDir: string, p: string): string {
@@ -43,6 +50,9 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
   if (opts.dataDir) paths.dataDir = opts.dataDir;
   const settings = await loadSettings(paths.dataDir);
   const engine = new WriteEngine(paths.dataDir, settings.backupKeep);
+  const store = new ProviderStore(path.join(paths.dataDir, "registry.json"));
+  const adapters = new Map<HostId, ProviderAdapter>();
+  adapters.set("opencode", createOpencodeAdapter(paths.hostRoots.opencode));
 
   const app = new Hono();
 
@@ -125,9 +135,9 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
     let target = body.path ? guardInsideHome(paths.homeDir, body.path) : null;
     if (!target) {
       try {
-        const meta = JSON.parse(await fsp.readFile(path.join(path.dirname(backupAbs), "meta.json"), "utf8")) as {
-          original: string;
-        };
+        const meta = JSON.parse(
+          await fsp.readFile(path.join(path.dirname(backupAbs), "meta.json"), "utf8"),
+        ) as { original: string };
         target = guardInsideHome(paths.homeDir, meta.original);
       } catch {
         return c.json({ error: "找不到备份元数据" }, 404);
@@ -142,5 +152,8 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
     return c.json({ ok: true, restored: target });
   });
 
-  return { app, paths, engine, settings, dataDir: paths.dataDir, homeDir: paths.homeDir };
+  // ---- 供应商档案库与切换 ----
+  registerProviderRoutes(app, { app, paths, engine, settings, dataDir: paths.dataDir, homeDir: paths.homeDir, store, adapters, hashOf: sha1 }, adapters);
+
+  return { app, paths, engine, settings, dataDir: paths.dataDir, homeDir: paths.homeDir, store, adapters, hashOf: sha1 };
 }
