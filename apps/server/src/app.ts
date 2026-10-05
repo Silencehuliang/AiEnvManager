@@ -10,6 +10,7 @@ import { WriteEngine, ConflictError } from "./engine/writer.js";
 import { detectFormat } from "./engine/ops.js";
 import { ProviderStore } from "./providerStore.js";
 import { createOpencodeAdapter } from "./adapters/opencode.js";
+import { createCodexAdapter } from "./adapters/codex.js";
 import type { ProviderAdapter } from "./adapters/types.js";
 import { registerProviderRoutes } from "./api/providers.js";
 
@@ -53,6 +54,7 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
   const store = new ProviderStore(path.join(paths.dataDir, "registry.json"));
   const adapters = new Map<HostId, ProviderAdapter>();
   adapters.set("opencode", createOpencodeAdapter(paths.hostRoots.opencode));
+  adapters.set("codex", createCodexAdapter(paths.hostRoots.codex));
 
   const app = new Hono();
 
