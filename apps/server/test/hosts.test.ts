@@ -6,7 +6,7 @@ describe("GET /api/hosts", () => {
   it("在 fixture 假环境中探测到全部四家宿主,配置路径位于临时目录下", async () => {
     const home = await makeFixtureHome();
     try {
-      const { app } = createApp({ homeDir: home });
+      const { app } = await createApp({ homeDir: home });
       const res = await app.request("/api/hosts");
       expect(res.status).toBe(200);
       const body = await res.json();
@@ -36,7 +36,7 @@ describe("GET /api/hosts", () => {
       await rm(path.join(home, d), { recursive: true, force: true });
     }
     try {
-      const { app } = createApp({ homeDir: home });
+      const { app } = await createApp({ homeDir: home });
       const res = await app.request("/api/hosts");
       const body = await res.json();
       expect(body.hosts.every((h: { detected: boolean }) => h.detected === false)).toBe(true);
