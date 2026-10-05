@@ -3,6 +3,7 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import os from "node:os";
 import type { Hono } from "hono";
 import type { AppContext } from "../app.js";
 import { listSkills, type SkillItem } from "../skills.js";
@@ -129,7 +130,7 @@ export function registerSkillRoutes(app: Hono, ctx: AppContext) {
       const skillsDir =
         body.targetLayer === "user"
           ? path.join(ctx.homeDir, ".agents", "skills")
-          : path.join(guardInsideHome(ctx.homeDir, body.project), ".agents", "skills");
+          : path.join(guardInsideHome(ctx.homeDir, body.project ?? ""), ".agents", "skills");
       const dest = path.join(skillsDir, name);
       guardInsideHome(ctx.homeDir, dest);
       if (fs.existsSync(dest)) return c.json({ error: `目标已存在:${dest}` }, 409);

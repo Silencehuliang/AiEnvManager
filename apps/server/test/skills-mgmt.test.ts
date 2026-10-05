@@ -21,7 +21,7 @@ describe("Skills 启停/安装/复制", () => {
   it("禁用:目录移入 .disabled,lock 同步;列表 disabled=true 且托管态", async () => {
     const { home, app, skillDir } = await setup();
     try {
-      const list1 = (await (await app.request("/api/skills")).json()) as { items: { id: string; disabled: boolean; provenance: string }[] };
+      const list1 = (await (await app.request("/api/skills")).json()) as { items: { id: string; name: string; disabled: boolean; provenance: string }[] };
       const item = list1.items.find((i) => i.name === "demo");
       expect(item?.disabled).toBe(false);
 
@@ -36,7 +36,7 @@ describe("Skills 启停/安装/复制", () => {
       const exists = fs.stat(skillDir).then(() => true, () => false);
       expect(await exists).toBe(false);
 
-      const list2 = (await (await app.request("/api/skills")).json()) as { items: { id: string; disabled: boolean; provenance: string }[] };
+      const list2 = (await (await app.request("/api/skills")).json()) as { items: { id: string; name: string; disabled: boolean; provenance: string }[] };
       const item2 = list2.items.find((i) => i.name === "demo");
       expect(item2?.disabled).toBe(true);
       expect(item2?.provenance).toBe("managed");
