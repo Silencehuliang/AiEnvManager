@@ -38,3 +38,14 @@
 7. **备份节奏对齐 cc-switch**:每次写前必备份 + 保留 N 份(N 默认 10);skills/插件域滚动保留 20 份。
 
 另:本机 `~/.local/bin/skillhub`(版本 2026.5.19)经核实为 Python 版「Minimal local skills store CLI」(`skills_store_cli.py`),与调研中 npm `skillhub`(airano)同名不同物;不影响结论。cc-switch 星数经 `gh api` 抽查吻合(140,192)。
+
+## 预规格评审(2026-10-05)
+
+to-spec 前的最终一致性检查:五轮访谈决策 ↔ ADR-0001~0003 ↔ 调研采纳项逐条对照。
+
+- 发现并修复 1 处文档缺口:ADR-0003 未记录「MCP 域对 dsh 只读(v1)」的不对称边界(此前只写在风险清单),已补入。
+- 调研数据可信度:cc-switch 星数与描述经 `gh api` 独立抽查吻合;本机 skillhub 身份查实(Python 版,同名不同物)。
+- 交由规格落定的实现层决策(常规默认,可否决):
+  1. 本工具自身数据目录 `~/.aienvmanager/`:`registry.json`(供应商档案库)+ `backups/`(写前快照,按宿主分目录)+ `settings.json`(扫描根、排除项、备份份数 N 等)。
+  2. 档案库用 JSON 而非 SQLite:条目量小(十级)、与直读直写哲学一致、备份即文件复制;SQLite 留待量级需要时再换。
+- 结论:**无阻塞问题,进入 to-spec。**

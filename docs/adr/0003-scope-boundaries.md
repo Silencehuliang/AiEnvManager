@@ -5,5 +5,6 @@
 - 内置层(宿主/插件自带资源)只读展示,永不编辑。
 - v1 资源域:供应商、Skills(内置/用户全局/项目)、MCP、插件;agents 定义、hooks、权限、settings 键值列 v1.x。
 - 插件域深度不对称:dsh 全量(总览+启停+全生命周期+开发者视图),其余宿主 v1 = 总览+启停。
+- MCP 域同样不对称:dsh 无独立 MCP 配置面(官方走插件生态),v1 对 dsh 只读展示;MCP 域按 ZCode/Codex/OpenCode 三宿主落地。
 - 项目层范围 = 配置根目录扫描(识别 `.agents/`、`AGENTS.md`、`cordis.patch.yml` 等标记)+ 手动排除。
 - 仅本机 localhost、无鉴权、按需启动(`npm start`);MVP 竖切从供应商域开始。
