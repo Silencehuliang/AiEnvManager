@@ -14,9 +14,12 @@ export type PatchOp =
   // ---- JSONC(apps: ZCode/OpenCode/通用 JSON)----
   | { op: "jsonSet"; path: (string | number)[]; value: unknown }
   | { op: "jsonRemove"; path: (string | number)[] }
-  // ---- YAML 顶层数组按 id upsert(apps: dsh cordis.patch.yml)----
+  // ---- YAML(apps: dsh settings/patch)----
   | { op: "yamlUpsertById"; id: string; fields: Record<string, unknown> }
-  | { op: "yamlRemoveById"; id: string };
+  | { op: "yamlRemoveById"; id: string }
+  /** 映射路径写入(自动创建中间映射),用于 settings 类 YAML */
+  | { op: "yamlSet"; path: string[]; value: unknown }
+  | { op: "yamlRemove"; path: string[] };
 
 export type Format = "jsonc" | "toml" | "yaml" | "text";
 
@@ -31,7 +34,7 @@ export function detectFormat(file: string): Format {
 const FORMAT_OPS: Record<Format, string[]> = {
   jsonc: ["jsonSet", "jsonRemove"],
   toml: ["setScalar", "removeKey", "removeTable"],
-  yaml: ["yamlUpsertById", "yamlRemoveById"],
+  yaml: ["yamlUpsertById", "yamlRemoveById", "yamlSet", "yamlRemove"],
   text: [],
 };
 

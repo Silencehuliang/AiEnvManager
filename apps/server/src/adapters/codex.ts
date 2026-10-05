@@ -1,6 +1,6 @@
 import path from "node:path";
 import { readFileSync } from "node:fs";
-import type { ProviderAdapter } from "./types.js";
+import type { ProviderAdapter, SwitchFilePlan } from "./types.js";
 import type { ProviderProfile } from "../registry.js";
 import { slugify } from "../registry.js";
 import type { PatchOp } from "../engine/ops.js";
@@ -29,7 +29,7 @@ export function createCodexAdapter(hostRoot: string): ProviderAdapter {
       const model = typeof parsed.model === "string" ? parsed.model : null;
       return { slug, model };
     },
-    switchOps(profile: ProviderProfile): PatchOp[] {
+    switchPlan(profile: ProviderProfile): SwitchFilePlan[] {
       const slug = slugify(profile.name);
       const override = profile.perHostOverrides?.codex;
       const baseUrl = override?.baseUrl ?? profile.baseUrl;
@@ -42,7 +42,7 @@ export function createCodexAdapter(hostRoot: string): ProviderAdapter {
       if (activeModel) {
         ops.push({ op: "setScalar", table: [], key: "model", value: activeModel });
       }
-      return ops;
+      return [{ file: providerFile, ops }];
     },
   };
 }

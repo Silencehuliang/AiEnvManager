@@ -50,23 +50,39 @@ function setFields(map: { set(key: string, value: unknown): void }, fields: Reco
   for (const [k, v] of Object.entries(fields)) map.set(k, v);
 }
 
-export function patchYaml(content: string, ops: Extract<PatchOp, { op: "yamlUpsertById" | "yamlRemoveById" }>[]): string {
+export function patchYaml(
+  content: string,
+  ops: Extract<PatchOp, { op: "yamlUpsertById" | "yamlRemoveById" | "yamlSet" | "yamlRemove" }>[],
+): string {
   const doc = loadYamlDoc(content);
-  if (!doc.contents) doc.contents = doc.createNode([]);
-  let seq = topSeq(doc);
-  if (!seq) throw new Error("yamlUpsertById 只支持顶层数组的 patch 文件");
+  if (!doc.contents) doc.contents = doc.createNode({});
 
   for (const op of ops) {
-    if (op.op === "yamlRemoveById") {
-      seq.items = seq.items.filter((item) => entryId(item) !== op.id);
+    if (op.op === "yamlSet") {
+      doc.setIn(op.path, doc.createNode(op.value));
       continue;
     }
-    const existing = seq.items.find((item) => entryId(item) === op.id);
-    if (existing && typeof existing === "object" && "set" in (existing as object)) {
-      setFields(existing as { set(key: string, value: unknown): void }, op.fields);
-    } else {
-      const node = doc.createNode({ id: op.id, ...op.fields });
-      seq.items.push(node);
+    if (op.op === "yamlRemove") {
+      doc.deleteIn(op.path);
+      continue;
+    }
+    let seq = topSeq(doc);
+    if (op.op === "yamlUpsertById") {
+      if (!seq) {
+        doc.contents = doc.createNode([]);
+        seq = topSeq(doc);
+      }
+      if (!seq) throw new Error("yamlUpsertById 只支持顶层数组的 patch 文件");
+      const existing = seq.items.find((item) => entryId(item) === op.id);
+      if (existing && typeof existing === "object" && "set" in (existing as object)) {
+        setFields(existing as { set(key: string, value: unknown): void }, op.fields);
+      } else {
+        const node = doc.createNode({ id: op.id, ...op.fields });
+        seq.items.push(node);
+      }
+    } else if (op.op === "yamlRemoveById") {
+      if (!seq) continue;
+      seq.items = seq.items.filter((item) => entryId(item) !== op.id);
     }
   }
   return doc.toString();

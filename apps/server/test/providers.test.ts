@@ -61,8 +61,9 @@ describe("供应商档案库 + OpenCode 切换", () => {
       const id = await createProfile(ctx.app);
       const res = await ctx.app.request(`/api/providers/${id}/preview/opencode`);
       expect(res.status).toBe(200);
-      const body = (await res.json()) as { file: string; ops: unknown[]; effectModel: string };
-      expect(body.ops.length).toBeGreaterThan(0);
+      const body = (await res.json()) as { files: { file: string; ops: unknown[] }[]; effectModel: string };
+      expect(body.files.length).toBeGreaterThan(0);
+      expect(body.files[0].ops.length).toBeGreaterThan(0);
       expect(body.effectModel).toBe("restart");
       // 未写盘
       expect(await fs.readFile(file, "utf8")).toBe(WITH_COMMENT);
