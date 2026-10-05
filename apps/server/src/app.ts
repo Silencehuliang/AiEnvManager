@@ -13,6 +13,7 @@ import { saveSettings } from "./settings.js";
 import { registerSkillRoutes } from "./api/skills.js";
 import { registerMcpRoutes } from "./api/mcp.js";
 import { registerPluginRoutes } from "./api/plugins.js";
+import { registerDshPluginRoutes } from "./api/dshPlugins.js";
 import { createOpencodeAdapter } from "./adapters/opencode.js";
 import { createCodexAdapter } from "./adapters/codex.js";
 import { createDshAdapter } from "./adapters/dsh.js";
@@ -179,6 +180,7 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
   registerSkillRoutes(app, ctx);
   registerMcpRoutes(app, ctx);
   registerPluginRoutes(app, ctx);
+  registerDshPluginRoutes(app, ctx);
 
   return ctx;
 }

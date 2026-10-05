@@ -4,6 +4,7 @@ import { api, type ProvidersResponse } from "./api.js";
 import ProvidersPage from "./pages/ProvidersPage.js";
 import SkillsPage from "./pages/SkillsPage.js";
 import McpPage from "./pages/McpPage.js";
+import PluginsPage from "./pages/PluginsPage.js";
 
 const HOST_NAMES: Record<string, string> = {
   zcode: "ZCode",
@@ -88,9 +89,7 @@ export default function App() {
         {page === "providers" && <ProvidersPage />}
         {page === "skills" && <SkillsPage />}
         {page === "mcp" && <McpPage />}
-        {page === "plugins" && (
-          <p style={{ color: "#888" }}>该资源域将在后续工单交付。</p>
-        )}
+        {page === "plugins" && <PluginsPage />}
       </main>
     </div>
   );
