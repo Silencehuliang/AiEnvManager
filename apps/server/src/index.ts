@@ -1,4 +1,5 @@
-import { serve, serveStatic } from "@hono/node-server";
+import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,7 +13,8 @@ const { app } = createApp();
 
 // 若 web 已构建,则由本服务直接托管(单进程交付)
 if (existsSync(path.join(webDist, "index.html"))) {
-  app.use("*", serveStatic({ root: path.relative(process.cwd(), webDist) || webDist }));
+  const rootRel = path.relative(process.cwd(), webDist);
+  app.use("*", serveStatic({ root: rootRel }));
   app.get("/", (c) => c.html(readFileSync(path.join(webDist, "index.html"), "utf8")));
 }
 
