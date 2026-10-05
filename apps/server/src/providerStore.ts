@@ -22,7 +22,7 @@ export class ProviderStore {
     return all.find((p) => p.id === id) ?? null;
   }
 
-  async upsert(input: Partial<ProviderProfile> & { name: string; baseUrl: string; apiKey: string }): Promise<ProviderProfile> {
+  async upsert(input: Partial<ProviderProfile> & { name?: string; baseUrl?: string; apiKey?: string }): Promise<ProviderProfile> {
     const all = await this.list();
     const now = Date.now();
     let profile: ProviderProfile;
@@ -33,6 +33,9 @@ export class ProviderStore {
       const idx = all.findIndex((p) => p.id === input.id);
       all[idx] = profile;
     } else {
+      if (!input.name || !input.baseUrl || !input.apiKey) {
+        throw new Error("name / baseUrl / apiKey 必填");
+      }
       profile = {
         id: crypto.randomUUID(),
         name: input.name,

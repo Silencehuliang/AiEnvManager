@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { describe, expect, it } from "vitest";
+import type { Hono } from "hono";
 import { createApp } from "../src/app.js";
 import { makeFixtureHome, cleanupFixture } from "./helpers/fixture.js";
 import { parseJsonc } from "../src/engine/jsonc.js";
@@ -140,7 +141,7 @@ describe("供应商档案库 + OpenCode 切换", () => {
   });
 });
 
-async function createProfile(app: { request: (u: string, i?: RequestInit) => Promise<Response> }, name = "ModelScope"): Promise<string> {
+async function createProfile(app: Hono, name = "ModelScope"): Promise<string> {
   const res = await app.request("/api/providers", {
     method: "POST",
     headers: { "content-type": "application/json" },
