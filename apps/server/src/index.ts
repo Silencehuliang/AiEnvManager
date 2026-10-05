@@ -9,7 +9,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const webDist = path.resolve(here, "../../web/dist");
 const port = Number(process.env.PORT ?? 7412);
 
-const { app } = createApp();
+const { app } = await createApp();
 
 // 若 web 已构建,则由本服务直接托管(单进程交付)
 if (existsSync(path.join(webDist, "index.html"))) {

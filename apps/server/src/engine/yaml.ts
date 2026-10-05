@@ -1,4 +1,4 @@
-import { parseDocument, type Document, type YAMLSeq, type Tags } from "yaml";
+import { parseDocument, type Document, type YAMLSeq, type ScalarTag } from "yaml";
 import type { PatchOp } from "./ops.js";
 
 /**
@@ -17,16 +17,15 @@ const JS_TAGS = [
   "!!js/string",
 ];
 
-const preserveTag = (tag: string): Tags =>
+const preserveTag = (tag: string): ScalarTag =>
   ({
     tag,
-    collection: "scalar",
     resolve: (value: string) => value,
     stringify: (item: { value: unknown }) =>
       typeof item.value === "string" ? item.value : String(item.value ?? ""),
-  }) as Tags;
+  }) as unknown as ScalarTag;
 
-const CUSTOM_TAGS: Tags[] = JS_TAGS.map(preserveTag);
+const CUSTOM_TAGS: ScalarTag[] = JS_TAGS.map(preserveTag);
 
 export function loadYamlDoc(content: string): Document {
   return parseDocument(content, { customTags: CUSTOM_TAGS, version: "1.2" });
