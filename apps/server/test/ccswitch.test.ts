@@ -44,7 +44,8 @@ describe("cc-switch 档案导入", () => {
       expect(body.skipped).toBe(1);
       expect(body.skippedNotes[0]).toContain("NoKey");
 
-      const list = (await app.request("/api/providers").then((r) => r.json())) as {
+      const listRes = await app.request("/api/providers");
+      const list = (await listRes.json()) as {
         profiles: { name: string; baseUrl: string; apiKey: string }[];
       };
       const a = list.profiles.find((p) => p.name === "Claude A");
