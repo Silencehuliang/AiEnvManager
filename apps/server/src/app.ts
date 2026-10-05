@@ -12,6 +12,7 @@ import { ProviderStore } from "./providerStore.js";
 import { createOpencodeAdapter } from "./adapters/opencode.js";
 import { createCodexAdapter } from "./adapters/codex.js";
 import { createDshAdapter } from "./adapters/dsh.js";
+import { createZcodeAdapter } from "./adapters/zcode.js";
 import type { ProviderAdapter } from "./adapters/types.js";
 import { registerProviderRoutes } from "./api/providers.js";
 
@@ -57,6 +58,7 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
   adapters.set("opencode", createOpencodeAdapter(paths.hostRoots.opencode));
   adapters.set("codex", createCodexAdapter(paths.hostRoots.codex));
   adapters.set("dsh", createDshAdapter(paths.hostRoots.dsh));
+  adapters.set("zcode", createZcodeAdapter(paths.hostRoots.zcode));
 
   const app = new Hono();
 

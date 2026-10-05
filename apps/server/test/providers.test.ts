@@ -130,7 +130,7 @@ describe("供应商档案库 + OpenCode 切换", () => {
     const { home, ctx } = await setup();
     try {
       const id = await createProfile(ctx.app);
-      const res = await ctx.app.request(`/api/providers/${id}/switch/zcode`, {
+      const res = await ctx.app.request(`/api/providers/${id}/switch/claude`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: "{}",
