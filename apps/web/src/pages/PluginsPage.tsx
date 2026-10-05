@@ -36,6 +36,41 @@ async function send<T>(url: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+function DshLifecycle({ profile, onError, onDone }: { profile: string; onError: (e: string) => void; onDone: () => void }) {
+  const [verb, setVerb] = useState("add");
+  const [pkg, setPkg] = useState("");
+  return (
+    <div style={{ marginTop: 8, display: "flex", gap: 6, alignItems: "center" }}>
+      <select value={verb} onChange={(e) => setVerb(e.target.value)} style={{ fontSize: 13 }}>
+        <option value="add">安装(add)</option>
+        <option value="remove">卸载(remove)</option>
+        <option value="update">升级(update)</option>
+      </select>
+      <input
+        placeholder="插件包名(如 @scope/my-plugin)"
+        value={pkg}
+        onChange={(e) => setPkg(e.target.value)}
+        style={{ flex: 1, fontSize: 13 }}
+      />
+      <button
+        style={{ fontSize: 13 }}
+        disabled={!pkg}
+        onClick={async () => {
+          try {
+            await send(`/api/dsh/profiles/${profile}/plugins`, { args: [verb, pkg] });
+            setPkg("");
+            onDone();
+          } catch (e) {
+            onError(String(e));
+          }
+        }}
+      >
+        代跑 dsh plugin
+      </button>
+    </div>
+  );
+}
+
 export default function PluginsPage() {
   const [data, setData] = useState<PluginsResponse | null>(null);
   const [dsh, setDsh] = useState<DshProfilesResponse | null>(null);
@@ -136,6 +171,7 @@ export default function PluginsPage() {
                   ))}
                 </tbody>
               </table>
+              <DshLifecycle profile={p.name} onError={setError} onDone={reload} />
             </div>
           ))}
         </div>

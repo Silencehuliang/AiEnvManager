@@ -14,12 +14,15 @@ import { registerSkillRoutes } from "./api/skills.js";
 import { registerMcpRoutes } from "./api/mcp.js";
 import { registerPluginRoutes } from "./api/plugins.js";
 import { registerDshPluginRoutes } from "./api/dshPlugins.js";
+import { registerDshLifecycleRoutes } from "./api/dshLifecycle.js";
 import { createOpencodeAdapter } from "./adapters/opencode.js";
 import { createCodexAdapter } from "./adapters/codex.js";
 import { createDshAdapter } from "./adapters/dsh.js";
 import { createZcodeAdapter } from "./adapters/zcode.js";
 import type { ProviderAdapter } from "./adapters/types.js";
 import { registerProviderRoutes } from "./api/providers.js";
+
+import { registerDshLifecycleRoutes, type DshRunner } from "./api/dshLifecycle.js";
 
 function sha1(content: string): string {
   return crypto.createHash("sha1").update(content).digest("hex");
@@ -30,6 +33,8 @@ export interface AppOptions {
   homeDir?: string;
   /** 覆盖本工具数据目录(默认 ~/.aienvmanager) */
   dataDir?: string;
+  /** dsh 命令执行器(fake runner 测试注入点) */
+  dshRunner?: DshRunner;
 }
 
 export interface AppContext {
@@ -181,6 +186,7 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
   registerMcpRoutes(app, ctx);
   registerPluginRoutes(app, ctx);
   registerDshPluginRoutes(app, ctx);
+  registerDshLifecycleRoutes(app, ctx, opts.dshRunner);
 
   return ctx;
 }
