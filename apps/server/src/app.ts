@@ -12,6 +12,7 @@ import { ProviderStore } from "./providerStore.js";
 import { saveSettings } from "./settings.js";
 import { registerSkillRoutes } from "./api/skills.js";
 import { registerMcpRoutes } from "./api/mcp.js";
+import { registerPluginRoutes } from "./api/plugins.js";
 import { createOpencodeAdapter } from "./adapters/opencode.js";
 import { createCodexAdapter } from "./adapters/codex.js";
 import { createDshAdapter } from "./adapters/dsh.js";
@@ -177,6 +178,7 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
   // ---- Skills 三层盘点 ----
   registerSkillRoutes(app, ctx);
   registerMcpRoutes(app, ctx);
+  registerPluginRoutes(app, ctx);
 
   return ctx;
 }
