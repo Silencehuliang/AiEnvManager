@@ -23,6 +23,17 @@ interface DshProfilesResponse {
   note: string;
 }
 
+interface DshDevResponse {
+  readonly: boolean;
+  note: string;
+  projects: {
+    root: string;
+    packageName: string | null;
+    mountedIn: { profile: string; via: string }[];
+    diffs: { id: string; profile: string; status: string }[];
+  }[];
+}
+
 async function send<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: "POST",
@@ -74,6 +85,7 @@ function DshLifecycle({ profile, onError, onDone }: { profile: string; onError: 
 export default function PluginsPage() {
   const [data, setData] = useState<PluginsResponse | null>(null);
   const [dsh, setDsh] = useState<DshProfilesResponse | null>(null);
+  const [dev, setDev] = useState<DshDevResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(() => {
@@ -85,6 +97,10 @@ export default function PluginsPage() {
       .then((r) => r.json() as Promise<DshProfilesResponse>)
       .then(setDsh)
       .catch(() => setDsh(null));
+    fetch("/api/dsh/dev")
+      .then((r) => r.json() as Promise<DshDevResponse>)
+      .then(setDev)
+      .catch(() => setDev(null));
   }, []);
   useEffect(reload, [reload]);
 
@@ -172,6 +188,37 @@ export default function PluginsPage() {
                 </tbody>
               </table>
               <DshLifecycle profile={p.name} onError={setError} onDone={reload} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {dev && dev.projects.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <h3>
+            开发者视图{" "}
+            <span style={{ fontSize: 12, color: "#888" }}>{dev.note}</span>
+          </h3>
+          {dev.projects.map((p) => (
+            <div key={p.root} style={{ border: "1px dashed #bbb", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+              <b style={{ fontFamily: "monospace", fontSize: 13 }}>{p.packageName ?? p.root}</b>
+              <p style={{ margin: "4px 0", fontSize: 12, color: "#555" }}>{p.root}</p>
+              <p style={{ margin: "4px 0", fontSize: 13 }}>
+                挂载状态:
+                {p.mountedIn.length === 0
+                  ? "未被任何 profile 引用"
+                  : p.mountedIn.map((m) => `${m.profile}(${m.via})`).join(", ")}
+              </p>
+              {p.diffs.length > 0 && (
+                <p style={{ margin: "4px 0", fontSize: 13 }}>
+                  本地条目 vs 已装:
+                  {p.diffs
+                    .map((d) =>
+                      `${d.id}@${d.profile}=${d.status === "different" ? "有差异" : d.status === "absent" ? "未装" : "一致"}`,
+                    )
+                    .join("; ")}
+                </p>
+              )}
             </div>
           ))}
         </div>

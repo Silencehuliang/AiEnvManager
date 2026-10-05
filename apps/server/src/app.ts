@@ -22,6 +22,7 @@ import type { ProviderAdapter } from "./adapters/types.js";
 import { registerProviderRoutes } from "./api/providers.js";
 
 import { registerDshLifecycleRoutes, type DshRunner } from "./api/dshLifecycle.js";
+import { registerDshDevRoutes } from "./api/dshDev.js";
 
 function sha1(content: string): string {
   return crypto.createHash("sha1").update(content).digest("hex");
@@ -186,6 +187,7 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
   registerPluginRoutes(app, ctx);
   registerDshPluginRoutes(app, ctx);
   registerDshLifecycleRoutes(app, ctx, opts.dshRunner);
+  registerDshDevRoutes(app, ctx);
 
   return ctx;
 }
