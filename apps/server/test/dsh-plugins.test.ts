@@ -56,7 +56,7 @@ describe("dsh 插件组合树 + 启停", () => {
       expect(content).toContain("disabled: true");
 
       const body = (await (await app.request("/api/dsh/profiles")).json()) as {
-        profiles: { entries: { id: string; disabled: boolean; managed: boolean }[] }[];
+        profiles: { name: string; entries: { id: string; disabled: boolean; managed: boolean }[] }[];
       };
       const desktop = body.profiles.find((p) => p.name === "desktop");
       expect(desktop?.entries.find((e) => e.id === "timer")?.disabled).toBe(true);
