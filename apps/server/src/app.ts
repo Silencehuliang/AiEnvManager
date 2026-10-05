@@ -10,8 +10,7 @@ import { WriteEngine, ConflictError } from "./engine/writer.js";
 import { detectFormat } from "./engine/ops.js";
 import { ProviderStore } from "./providerStore.js";
 import { saveSettings } from "./settings.js";
-import { discoverProjects } from "./scan.js";
-import { listSkills } from "./skills.js";
+import { registerSkillRoutes } from "./api/skills.js";
 import { createOpencodeAdapter } from "./adapters/opencode.js";
 import { createCodexAdapter } from "./adapters/codex.js";
 import { createDshAdapter } from "./adapters/dsh.js";
@@ -162,7 +161,8 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
   });
 
   // ---- 供应商档案库与切换 ----
-  registerProviderRoutes(app, { app, paths, engine, settings, dataDir: paths.dataDir, homeDir: paths.homeDir, store, adapters, hashOf: sha1 }, adapters);
+  const ctx: AppContext = { app, paths, engine, settings, dataDir: paths.dataDir, homeDir: paths.homeDir, store, adapters, hashOf: sha1 };
+  registerProviderRoutes(app, ctx, adapters);
 
   // ---- 设置(扫描根/排除/备份份数)----
   app.get("/api/settings", (c) => c.json(settings));
@@ -174,11 +174,7 @@ export async function createApp(opts: AppOptions = {}): Promise<AppContext> {
   });
 
   // ---- Skills 三层盘点 ----
-  app.get("/api/skills", async (c) => {
-    const projects = await discoverProjects(settings);
-    const items = listSkills(paths.homeDir, paths.hostRoots, projects);
-    return c.json({ items, projects });
-  });
+  registerSkillRoutes(app, ctx);
 
-  return { app, paths, engine, settings, dataDir: paths.dataDir, homeDir: paths.homeDir, store, adapters, hashOf: sha1 };
+  return ctx;
 }

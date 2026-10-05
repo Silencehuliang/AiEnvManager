@@ -11,6 +11,7 @@ interface SkillItem {
   description?: string;
   project?: string;
   disabled: boolean;
+  provenance: string;
 }
 
 interface SkillsResponse {
@@ -23,10 +24,29 @@ interface SettingsShape {
   excludes: string[];
 }
 
+async function postJson<T>(url: string, body: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const b = (await res.json().catch(() => ({ error: res.statusText }))) as { error?: string };
+    throw new Error(b.error ?? String(res.status));
+  }
+  return res.json() as Promise<T>;
+}
+
 export default function SkillsPage() {
   const [data, setData] = useState<SkillsResponse | null>(null);
   const [roots, setRoots] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [install, setInstall] = useState<{ source: string; targetLayer: "user" | "project"; project: string; name: string }>({
+    source: "",
+    targetLayer: "user",
+    project: "",
+    name: "",
+  });
 
   const reload = useCallback(() => {
     fetch("/api/skills")
@@ -74,6 +94,8 @@ export default function SkillsPage() {
               {Object.keys(HOST_NAMES).map((h) => (
                 <th key={h}>{HOST_NAMES[h]}</th>
               ))}
+              <th>来源态</th>
+              <th>操作</th>
               <th>描述</th>
             </tr>
           </thead>
@@ -88,6 +110,42 @@ export default function SkillsPage() {
                     {Object.keys(HOST_NAMES).map((h) => (
                       <td key={h}>{i.hosts.includes(h) ? (i.disabled ? "🚫" : "✓") : "—"}</td>
                     ))}
+                    <td style={{ fontSize: 12 }}>
+                      {i.provenance === "managed" ? "托管" : i.provenance === "conflicting" ? "冲突" : "外来"}
+                    </td>
+                    <td>
+                      {layer !== "builtin" && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await postJson("/api/skills/toggle", { id: i.id, enabled: i.disabled });
+                              reload();
+                            } catch (e) {
+                              setError(String(e));
+                            }
+                          }}
+                        >
+                          {i.disabled ? "启用" : "禁用"}
+                        </button>
+                      )}
+                      {layer === "user" && (
+                        <button
+                          style={{ marginLeft: 4 }}
+                          onClick={async () => {
+                            const project = prompt("目标项目根(留空跳过复制):");
+                            if (!project) return;
+                            try {
+                              await postJson("/api/skills/copy", { id: i.id, toLayer: "project", project });
+                              reload();
+                            } catch (e) {
+                              setError(String(e));
+                            }
+                          }}
+                        >
+                          复制到项目
+                        </button>
+                      )}
+                    </td>
                     <td style={{ fontSize: 12, color: "#555" }}>{i.description ?? ""}</td>
                   </tr>
                 )),
@@ -95,6 +153,36 @@ export default function SkillsPage() {
           </tbody>
         </table>
       )}
+
+      <h3>安装 Skill(本地目录 / owner/repo / git URL)</h3>
+      <div style={{ display: "grid", gap: 6, maxWidth: 560 }}>
+        <input placeholder="来源" value={install.source} onChange={(e) => setInstall({ ...install, source: e.target.value })} />
+        <select
+          value={install.targetLayer}
+          onChange={(e) => setInstall({ ...install, targetLayer: e.target.value as "user" | "project" })}
+        >
+          <option value="user">用户全局(~/.agents/skills)</option>
+          <option value="project">项目层</option>
+        </select>
+        {install.targetLayer === "project" && (
+          <input placeholder="项目根路径" value={install.project} onChange={(e) => setInstall({ ...install, project: e.target.value })} />
+        )}
+        <input placeholder="名称(默认取目录名)" value={install.name} onChange={(e) => setInstall({ ...install, name: e.target.value })} />
+        <button
+          disabled={!install.source}
+          onClick={async () => {
+            try {
+              await postJson("/api/skills/install", install);
+              setInstall({ source: "", targetLayer: "user", project: "", name: "" });
+              reload();
+            } catch (e) {
+              setError(String(e));
+            }
+          }}
+        >
+          安装
+        </button>
+      </div>
     </div>
   );
 }
